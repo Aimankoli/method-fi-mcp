@@ -32,7 +32,9 @@ Method Finance MCP is a project that leverages the [Method Finance API](https://
     - Create a `.env` file in the project root:
 
       ```env
+      OPENAI_API_KEY=your_key_here
       METHOD_API_KEY=your_api_key_here
+      BASE_URL=[Optional: Sandbox, Dev, Prod. Defaults to Dev] "https://dev.methodfi.com" 
       ```
 
 4. **Start the server:**
