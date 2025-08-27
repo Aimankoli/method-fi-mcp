@@ -17,7 +17,7 @@ Method Finance MCP is a project that leverages the [Method Finance API](https://
 
 1. **Clone the repository:**
     ```bash
-    git clone <repo-url>
+    git clone https://github.com/Aimankoli/method-fi-mcp
     cd method-fi-mcp
     ```
 
@@ -49,6 +49,9 @@ Method Finance MCP is a project that leverages the [Method Finance API](https://
   ```bash
   python -m client.client
   ```
+
+## Prompts to try
+1) Can you create an individual with name {FirstName} {LastName} with email {email} and phone {phone}. They live at xx xxxxxxx Street, {city}, {state}, {zip}. Born on 1st Jan 2000
 
 ## Documentation
 
