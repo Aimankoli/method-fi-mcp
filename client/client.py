@@ -33,9 +33,9 @@ class OPENAIClient:
         """Initialize the client.
         """
         self.transport = StreamableHttpTransport(
-            url=f"http://localhost:{PORT}/mcp",
+            url=f"http://localhost:8002/mcp",
             headers={"Authorization": f"Bearer {methodapi_key}"}
-        ) 
+        )
         self.openai_client = OpenAI(api_key=openai_api_key)
         self.async_openai_client = AsyncOpenAI(api_key=openai_api_key)
         self.model = "gpt-4o-mini" if model is None else model

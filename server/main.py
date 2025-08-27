@@ -66,6 +66,237 @@ async def create_individual(
     return call_endpoint("/entities", "POST", data=entity_data)
 
 
+
+# Entity Tools
+@mcp.tool(name="list_entities", description="List all entities")
+async def list_entities(
+    entity_type: Annotated[Optional[str], Field(description="Filter by entity type: individual or corporation")] = None,
+    status: Annotated[Optional[str], Field(description="Filter by status: active, incomplete, disabled")] = None,
+    page_limit: Annotated[Optional[str], Field(description="Number of entities per page")] = None,
+) -> Dict:
+    """List all entities with optional filters"""
+    params = {}
+    if entity_type:
+        params["type"] = entity_type
+    if status:
+        params["status"] = status
+    if page_limit:
+        params["page_limit"] = page_limit
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = f"/entities?{query_string}" if query_string else "/entities"
+    return call_endpoint(endpoint, "GET")
+
+@mcp.tool(name="retrieve_entity", description="Retrieve a specific entity by ID")
+async def retrieve_entity(
+    entity_id: Annotated[str, Field(description="The entity ID to retrieve")]
+) -> Dict:
+    """Retrieve entity details by ID"""
+    return call_endpoint(f"/entities/{entity_id}", "GET")
+
+@mcp.tool(name="update_entity", description="Update an entity")
+async def update_entity(
+    entity_id: Annotated[str, Field(description="The entity ID to update")],
+    first_name: Annotated[Optional[str], Field(description="Updated first name")] = None,
+    last_name: Annotated[Optional[str], Field(description="Updated last name")] = None,
+    phone: Annotated[Optional[str], Field(description="Updated phone number")] = None,
+    email: Annotated[Optional[str], Field(description="Updated email")] = None,
+) -> Dict:
+    """Update entity information"""
+    update_data = {}
+    individual_updates = {}
+    
+    if first_name:
+        individual_updates["first_name"] = first_name
+    if last_name:
+        individual_updates["last_name"] = last_name
+    if phone:
+        individual_updates["phone"] = phone
+    if email:
+        individual_updates["email"] = email
+    
+    if individual_updates:
+        update_data["individual"] = individual_updates
+    
+    return call_endpoint(f"/entities/{entity_id}", "PUT", data=update_data)
+
+# Account Tools
+@mcp.tool(name="list_accounts", description="List all accounts")
+async def list_accounts(
+    entity_id: Annotated[Optional[str], Field(description="Filter by entity ID")] = None,
+    page_limit: Annotated[Optional[str], Field(description="Number of accounts per page")] = None,
+) -> Dict:
+    """List all accounts with optional filters"""
+    params = {}
+    if entity_id:
+        params["entity_id"] = entity_id
+    if page_limit:
+        params["page_limit"] = page_limit
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = f"/accounts?{query_string}" if query_string else "/accounts"
+    return call_endpoint(endpoint, "GET")
+
+@mcp.tool(name="retrieve_account", description="Retrieve a specific account by ID")
+async def retrieve_account(
+    account_id: Annotated[str, Field(description="The account ID to retrieve")]
+) -> Dict:
+    """Retrieve account details by ID"""
+    return call_endpoint(f"/accounts/{account_id}", "GET")
+
+# Payment Tools
+@mcp.tool(name="create_payment", description="Create a payment between accounts")
+async def create_payment(
+    amount: Annotated[int, Field(description="Payment amount in cents (e.g., 5000 = $50.00)")],
+    source: Annotated[str, Field(description="Source account ID")],
+    destination: Annotated[str, Field(description="Destination account ID")],
+    description: Annotated[str, Field(description="Payment description (max 10 characters)")],
+    dry_run: Annotated[Optional[bool], Field(description="Simulate payment without processing")] = False,
+) -> Dict:
+    """Create a payment from source to destination account"""
+    payment_data = {
+        "amount": amount,
+        "source": source,
+        "destination": destination,
+        "description": description
+    }
+    if dry_run:
+        payment_data["dry_run"] = dry_run
+    
+    return call_endpoint("/payments", "POST", data=payment_data)
+
+@mcp.tool(name="list_payments", description="List all payments")
+async def list_payments(
+    page_limit: Annotated[Optional[str], Field(description="Number of payments per page")] = None,
+) -> Dict:
+    """List all payments"""
+    params = {}
+    if page_limit:
+        params["page_limit"] = page_limit
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = f"/payments?{query_string}" if query_string else "/payments"
+    return call_endpoint(endpoint, "GET")
+
+@mcp.tool(name="retrieve_payment", description="Retrieve a specific payment by ID")
+async def retrieve_payment(
+    payment_id: Annotated[str, Field(description="The payment ID to retrieve")]
+) -> Dict:
+    """Retrieve payment details by ID"""
+    return call_endpoint(f"/payments/{payment_id}", "GET")
+
+# Account Updates Tools
+@mcp.tool(name="create_account_update", description="Create an account update to get real-time data")
+async def create_account_update(
+    account_id: Annotated[str, Field(description="The account ID to update")]
+) -> Dict:
+    """Create an update for real-time account data"""
+    return call_endpoint(f"/accounts/{account_id}/updates", "POST")
+
+@mcp.tool(name="list_account_updates", description="List updates for an account")
+async def list_account_updates(
+    account_id: Annotated[str, Field(description="The account ID")],
+    page_limit: Annotated[Optional[str], Field(description="Number of updates per page")] = None,
+) -> Dict:
+    """List all updates for a specific account"""
+    params = {}
+    if page_limit:
+        params["page_limit"] = page_limit
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = f"/accounts/{account_id}/updates?{query_string}" if query_string else f"/accounts/{account_id}/updates"
+    return call_endpoint(endpoint, "GET")
+
+# Connect Tools (Entity liability accounts)
+@mcp.tool(name="create_entity_connect", description="Connect entity to discover liability accounts")
+async def create_entity_connect(
+    entity_id: Annotated[str, Field(description="The entity ID to connect")]
+) -> Dict:
+    """Create a connect session to discover entity's liability accounts"""
+    return call_endpoint(f"/entities/{entity_id}/connect", "POST")
+
+@mcp.tool(name="list_entity_connects", description="List connects for an entity")
+async def list_entity_connects(
+    entity_id: Annotated[str, Field(description="The entity ID")]
+) -> Dict:
+    """List all connects for a specific entity"""
+    return call_endpoint(f"/entities/{entity_id}/connect", "GET")
+
+# Credit Score Tools
+@mcp.tool(name="create_credit_score", description="Get entity's credit score")
+async def create_credit_score(
+    entity_id: Annotated[str, Field(description="The entity ID")]
+) -> Dict:
+    """Create a credit score request for an entity"""
+    return call_endpoint(f"/entities/{entity_id}/credit_scores", "POST")
+
+@mcp.tool(name="list_credit_scores", description="List credit scores for an entity")
+async def list_credit_scores(
+    entity_id: Annotated[str, Field(description="The entity ID")]
+) -> Dict:
+    """List all credit scores for a specific entity"""
+    return call_endpoint(f"/entities/{entity_id}/credit_scores", "GET")
+
+# Webhook Tools
+@mcp.tool(name="create_webhook", description="Create a webhook for event notifications")
+async def create_webhook(
+    webhook_type: Annotated[str, Field(description="Webhook event type (e.g., payment.update, entity.create)")],
+    url: Annotated[str, Field(description="URL to receive webhook notifications")],
+    expand_event: Annotated[Optional[bool], Field(description="Whether to expand event object")] = False,
+) -> Dict:
+    """Create a webhook for receiving event notifications"""
+    webhook_data = {
+        "type": webhook_type,
+        "url": url,
+        "expand_event": expand_event
+    }
+    return call_endpoint("/webhooks", "POST", data=webhook_data)
+
+@mcp.tool(name="list_webhooks", description="List all webhooks")
+async def list_webhooks() -> Dict:
+    """List all registered webhooks"""
+    return call_endpoint("/webhooks", "GET")
+
+@mcp.tool(name="delete_webhook", description="Delete a webhook")
+async def delete_webhook(
+    webhook_id: Annotated[str, Field(description="The webhook ID to delete")]
+) -> Dict:
+    """Delete a webhook by ID"""
+    return call_endpoint(f"/webhooks/{webhook_id}", "DELETE")
+
+# Payment Instrument Tools
+@mcp.tool(name="create_payment_instrument", description="Create payment instrument for account")
+async def create_payment_instrument(
+    account_id: Annotated[str, Field(description="The account ID")],
+    instrument_type: Annotated[str, Field(description="Type: card or network_token")] = "card",
+) -> Dict:
+    """Create a payment instrument (card credentials) for an account"""
+    instrument_data = {
+        "type": instrument_type
+    }
+    return call_endpoint(f"/accounts/{account_id}/payment_instruments", "POST", data=instrument_data)
+
+# Subscription Tools
+@mcp.tool(name="create_subscription", description="Create a subscription for continuous updates")
+async def create_subscription(
+    entity_id: Annotated[str, Field(description="The entity ID")],
+    subscription_name: Annotated[str, Field(description="Subscription name: connect, credit_score, or attribute")]
+) -> Dict:
+    """Create a subscription for continuous updates"""
+    subscription_data = {
+        "name": subscription_name
+    }
+    return call_endpoint(f"/entities/{entity_id}/subscriptions", "POST", data=subscription_data)
+
+@mcp.tool(name="list_subscriptions", description="List entity subscriptions")
+async def list_subscriptions(
+    entity_id: Annotated[str, Field(description="The entity ID")]
+) -> Dict:
+    """List all subscriptions for an entity"""
+    return call_endpoint(f"/entities/{entity_id}/subscriptions", "GET")
+
+
+
 def main():
     mcp.run(transport="streamable-http", port=8002)
 
