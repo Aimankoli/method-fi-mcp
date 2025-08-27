@@ -21,6 +21,7 @@ configure_logging(level="INFO")
 load_dotenv()
 # Define provider type
 provider = "openai"
+PORT = os.getenv("PORT", "8000")
 
 class OPENAIClient:
     """A client that integrates Claude/GPT with FastMCP tools."""
@@ -32,7 +33,7 @@ class OPENAIClient:
         """Initialize the client.
         """
         self.transport = StreamableHttpTransport(
-            url="http://localhost:8002/mcp",
+            url=f"http://localhost:{PORT}/mcp",
             headers={"Authorization": f"Bearer {methodapi_key}"}
         ) 
         self.openai_client = OpenAI(api_key=openai_api_key)
@@ -216,13 +217,13 @@ async def main():
         print("Please set the OPENAI_API_KEY environment variable")
         return
     # Set user PAT when initialising client 
-    methodapi = os.getenv("METHOD_API_KEY") ##change pat to test
+    methodapi = os.getenv("METHOD_API_KEY")
     print(f"Method API Key: {methodapi}")
     if not methodapi:
         print("Please set the METHOD_API_KEY environment variable")
         return
     # Get model from environment if specified
-    model = "gpt-4o-mini"
+    model = os.getenv("MODEL","gpt-4o-mini")
     print(f"model: {model}")
     # Create the client
     client = OPENAIClient(
