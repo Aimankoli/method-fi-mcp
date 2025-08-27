@@ -58,8 +58,8 @@ async def create_individual(
             "line1": street_address,
             "line2": street_address_2,
             "city": city,
-            "state": "TX",
-            "zip": "78705"
+            "state": state,
+            "zip": zip
         }
     }
     print(f"Entity data being sent: {entity_data}")
